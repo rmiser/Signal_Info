@@ -1,0 +1,33 @@
+'Description: Supply Air Temp Setpoint Calculation Program
+'Flow Type: Looping
+'Triggers: none
+'This program calculates a supply air temperature setpoint using room heating and cooling loads
+'The room heating and cooling loads are split into two bands.  The lower band is used to calculate the supply setpoint
+'and the upper band is used to calculate the supply fan speed.
+'Version 1.0
+
+Numeric Input RmTmpCspt, RmTmpHspt, ClgLoad, HtgLoad, HtgClgMd
+Numeric Output SaTmpCspt, SaTmpHspt, SaTmpSpt
+
+Numeric Input SaCsptCbh 'Upper limit of the cooling load used for calculating supply air cooling setpoint, default 66%
+Numeric Input SaHsptHbh 'Upper limit of the heating load used for calculating supply air heating setpoint, default 66%
+Numeric Input SaTmpCsptLlmt 'Cooling setpoint low limit, default 52
+Numeric Input SaTmpHsptHlmt 'Heating setpoint high limit, default 110
+
+Initialize:
+If ClgLoad <= 0 then 
+	SaTmpCspt = RmTmpCspt 
+Else
+	If ClgLoad >= SaCsptCbh then SaTmpCspt = SaTmpCsptLlmt else SaTmpCspt = RmTmpCspt - (ClgLoad/(SaCsptCbh + (SaCsptCbh = 0)))*(RmTmpCspt - SaTmpCsptLlmt)
+Endif
+
+If HtgLoad <= 0 Then
+	SaTmpHspt = RmTmpHspt
+Else
+	If HtgLoad >= SaHsptHbh then SaTmpHspt = SaTmpHsptHlmt else SaTmpHspt = RmTmpHspt + (HtgLoad/(SaHsptHbh + (SaHsptHbh = 0)))*(SaTmpHsptHlmt - RmTmpHspt)
+Endif
+		
+SaTmpSpt = HtgClgMd*SaTmpCspt + (not HtgClgMd)*SaTmpHspt
+
+E:
+ If TS > 30 Then Goto Initialize
